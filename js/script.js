@@ -1,5 +1,5 @@
 // Replace with your deployed Web App URL
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYuOaXAZxaI5C1e3PEjHUUyl_7P5P0-uwYRuzvcVv5jJwsPA2rD272IEwk6WwUbMPliQ/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwJBLPg_q-E4AbJ6WVFMvyYw4dQrZ5w2CjAJTg6VV5XNEqg1UY713nMhkE6HAnF0Y2b4Q/exec";
 
 // Load data from Google Sheet
 async function loadData() {
