@@ -1,5 +1,5 @@
 // Replace with your deployed Web App URL
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHl9gLsEjy0wKT_WRuxRvKCvBm10_CUUFgRcMi8cwEHoOAqxdshlU1ADxnjtJMwJdBqg/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYuOaXAZxaI5C1e3PEjHUUyl_7P5P0-uwYRuzvcVv5jJwsPA2rD272IEwk6WwUbMPliQ/exec";
 
 // Load data from Google Sheet
 async function loadData() {
@@ -134,19 +134,26 @@ async function submitForm(action, id = null) {
     });
     
     try {
-        let url = `${WEB_APP_URL}?action=${action === 'add' ? 'addData' : 'updateData'}`;
-        if (id) url += `&id=${id}`;
+        let url = WEB_APP_URL;
+        const params = new URLSearchParams();
+        params.append('action', action === 'add' ? 'addData' : 'updateData');
+        if (id) params.append('id', id);
+        
+        // Convert formData to URL-encoded string
+        for (const key in formData) {
+            params.append(key, formData[key]);
+        }
         
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify(formData)
+            body: params.toString()
         });
         
-        const result = await response.json();
-        alert(result.message);
+        const result = await response.text();
+        alert(result);
         window.location.href = 'index.html';
     } catch (error) {
         console.error("Error:", error);
@@ -159,8 +166,8 @@ async function deleteRow(id) {
     if (confirm('Are you sure you want to delete this record?')) {
         try {
             const response = await fetch(`${WEB_APP_URL}?action=deleteData&id=${id}`);
-            const result = await response.json();
-            alert(result.message);
+            const result = await response.text();
+            alert(result);
             loadData();
         } catch (error) {
             console.error("Error:", error);
@@ -171,3 +178,7 @@ async function deleteRow(id) {
 
 // Make functions available globally
 window.deleteRow = deleteRow;
+window.loadData = loadData;
+window.generateFormFields = generateFormFields;
+window.loadDataForEdit = loadDataForEdit;
+window.submitForm = submitForm;
