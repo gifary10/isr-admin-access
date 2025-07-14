@@ -157,27 +157,35 @@ async function loadDataForEdit(id) {
 }
 
 // Submit form data
+// Submit form data
 async function submitForm(action, id = null) {
     try {
         showLoading(true);
-        const form = document.getElementById(`${action}-form`);
+
+        // Cari form berdasarkan action ('add' => input-form, 'edit' => edit-form)
+        const formId = (action === 'add') ? 'input-form' : (action === 'edit' ? 'edit-form' : `${action}-form`);
+        const form = document.getElementById(formId);
+
+        if (!form || !(form instanceof HTMLFormElement)) {
+            throw new Error(`Form with id "${formId}" not found or invalid.`);
+        }
+
         const formData = new FormData(form);
         const data = {};
-        
+
         // Convert FormData to object
         for (const [key, value] of formData.entries()) {
             data[key] = value;
         }
-        
+
         const params = new URLSearchParams();
         params.append('action', action === 'add' ? 'addData' : 'updateData');
         if (id) params.append('id', id);
-        
-        // Add form data to params
+
         for (const key in data) {
             params.append(key, data[key]);
         }
-        
+
         const response = await fetch(WEB_APP_URL, {
             method: 'POST',
             headers: {
@@ -185,11 +193,11 @@ async function submitForm(action, id = null) {
             },
             body: params.toString()
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.text();
         alert(result);
         window.location.href = 'index.html';
@@ -200,6 +208,7 @@ async function submitForm(action, id = null) {
         showLoading(false);
     }
 }
+
 
 // Delete a row
 async function deleteRow(id) {
