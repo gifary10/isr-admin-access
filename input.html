@@ -9,20 +9,16 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <!-- Header -->
   <header>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-      <a class="navbar-brand" href="#">
-        <img src="logoh.png" alt="Company Logo">
-      </a>
-      <div class="navbar-collapse">
-        <ul class="navbar-nav ms-auto">
-          <!-- Semua item navbar telah dihapus sesuai permintaan -->
-        </ul>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <img src="logoh.png" alt="Company Logo">
+        </a>
       </div>
-    </div>
-  </nav>
-</header>
+    </nav>
+  </header>
 
   <!-- Main Content -->
   <main class="main-container">
@@ -52,14 +48,20 @@
   <script src="js/script.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Set current year in footer
-      document.getElementById('year').textContent = new Date().getFullYear();
-      
       // Initialize form
       document.getElementById('input-form').addEventListener('submit', function(e) {
         e.preventDefault();
         submitForm('add');
       });
+      
+      // Generate form fields if function exists
+      if (typeof generateFormFields === 'function') {
+        generateFormFields('input-form', 'add');
+      } else {
+        console.error('generateFormFields function not found');
+        document.getElementById('form-fields').innerHTML = 
+          '<div class="alert alert-danger">Error: Could not load form fields</div>';
+      }
     });
   </script>
 </body>
