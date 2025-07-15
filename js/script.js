@@ -71,7 +71,7 @@ function displayData(data) {
         
 // Add action buttons
 const actionTd = document.createElement('td');
-actionTd.innerHTML =   <div class="btn-group btn-group-sm">   <a href="edit.html?id=${index}" class="btn btn-warning">   <i class="bi bi-pencil-square"></i> Edit   </a>   <button onclick="deleteRow(${index})" class="btn btn-danger">   <i class="bi bi-trash"></i> Delete   </button>   </div>  ;
+actionTd.innerHTML =   <div class="btn-group btn-group-sm">   <a href="edit.html?id=${index}" class="btn btn-warning">   <i class="bi bi-pencil-square"></i> </a>   <button onclick="deleteRow(${index})" class="btn btn-danger">   <i class="bi bi-trash"></i> </button>   </div>  ;
 tr.appendChild(actionTd);
 
 dataBody.appendChild(tr);  
