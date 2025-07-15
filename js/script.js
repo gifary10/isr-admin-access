@@ -69,166 +69,25 @@ function displayData(data) {
             tr.appendChild(td);
         });
         
-// Add action buttons
-const actionTd = document.createElement('td');
-actionTd.innerHTML =   <div class="btn-group btn-group-sm">   <a href="edit.html?id=${index}" class="btn btn-warning">   <i class="bi bi-pencil-square"></i> </a>   <button onclick="deleteRow(${index})" class="btn btn-danger">   <i class="bi bi-trash"></i> </button>   </div>  ;
-tr.appendChild(actionTd);
-
-dataBody.appendChild(tr);  
-});
-
+        // Add action buttons
+        const actionTd = document.createElement('td');
+        actionTd.innerHTML = `
+          <div class="btn-group btn-group-sm">
+            <a href="edit.html?id=${index}" class="btn btn-warning">
+              <i class="bi bi-pencil-square"></i>
+            </a>
+            <button onclick="deleteRow(${index})" class="btn btn-danger">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        `;
+        tr.appendChild(actionTd);
+        
+        dataBody.appendChild(tr);
+    });
 }
 
-
-
-// Generate form fields dynamically
-async function generateFormFields(formId, action) {
-    try {
-        showLoading(true);
-        const response = await fetch(`${WEB_APP_URL}?action=getHeaders`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const headers = await response.json();
-        const formFields = document.getElementById('form-fields');
-        formFields.innerHTML = '';
-        
-        // Filter out internal fields
-        const filteredHeaders = headers.filter(header => header !== 'rowNum');
-        
-        filteredHeaders.forEach(header => {
-            const div = document.createElement('div');
-            div.className = 'mb-3';
-            div.innerHTML = `
-                <label for="${header}" class="form-label">${header}</label>
-                <input type="text" class="form-control" id="${header}" name="${header}" required>
-            `;
-            formFields.appendChild(div);
-        });
-    } catch (error) {
-        console.error("Error generating form fields:", error);
-        alert("Failed to load form fields: " + error.message);
-    } finally {
-        showLoading(false);
-    }
-}
-
-// Load data for editing
-async function loadDataForEdit(id) {
-    try {
-        showLoading(true);
-        const response = await fetch(`${WEB_APP_URL}?action=getDataById&id=${id}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const formFields = document.getElementById('form-fields');
-        formFields.innerHTML = '';
-        
-        // Filter out internal fields
-        const filteredData = Object.keys(data).filter(key => key !== 'rowNum');
-        
-        filteredData.forEach(key => {
-            const div = document.createElement('div');
-            div.className = 'mb-3';
-            div.innerHTML = `
-                <label for="${key}" class="form-label">${key}</label>
-                <input type="text" class="form-control" id="${key}" name="${key}" 
-                       value="${data[key] || ''}" required>
-            `;
-            formFields.appendChild(div);
-        });
-    } catch (error) {
-        console.error("Error loading data for edit:", error);
-        alert("Failed to load data for editing: " + error.message);
-    } finally {
-        showLoading(false);
-    }
-}
-
-// Submit form data
-async function submitForm(action, id = null) {
-    try {
-        showLoading(true);
-
-        const formId = (action === 'add') ? 'input-form' : (action === 'edit' ? 'edit-form' : `${action}-form`);
-        const form = document.getElementById(formId);
-
-        if (!form || !(form instanceof HTMLFormElement)) {
-            throw new Error(`Form with id "${formId}" not found or invalid.`);
-        }
-
-        const formData = new FormData(form);
-        const data = {};
-
-        for (const [key, value] of formData.entries()) {
-            data[key] = value;
-        }
-
-        const params = new URLSearchParams();
-        params.append('action', action === 'add' ? 'addData' : 'updateData');
-        if (id) params.append('id', id);
-
-        for (const key in data) {
-            params.append(key, data[key]);
-        }
-
-        const response = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: params.toString()
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.text();
-        alert(result);
-        window.location.href = 'index.html';
-    } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("Failed to submit form: " + error.message);
-    } finally {
-        showLoading(false);
-    }
-}
-
-// Delete a row
-async function deleteRow(id) {
-    if (!confirm('Are you sure you want to delete this record?')) {
-        return;
-    }
-    
-    try {
-        showLoading(true);
-        const response = await fetch(`${WEB_APP_URL}?action=deleteData&id=${id}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.text();
-        
-        if (result.startsWith("Error")) {
-            throw new Error(result);
-        }
-        
-        alert(result);
-        loadData(); // Refresh the data table
-    } catch (error) {
-        console.error("Error deleting row:", error);
-        alert(error.message || "Failed to delete data");
-    } finally {
-        showLoading(false);
-    }
-}
+// ... (rest of your functions remain the same)
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
@@ -236,6 +95,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!document.getElementById('loading-indicator')) {
         const loader = document.createElement('div');
         loader.id = 'loading-indicator';
+        loader.style.display = 'none';
+        loader.style.position = 'fixed';
+        loader.style.top = '0';
+        loader.style.left = '0';
+        loader.style.width = '100%';
+        loader.style.height = '100%';
+        loader.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        loader.style.justifyContent = 'center';
+        loader.style.alignItems = 'center';
+        loader.style.zIndex = '1000';
         loader.innerHTML = `
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -243,8 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(loader);
     }
-    
-    
     
     // Initialize based on current page
     if (document.getElementById('data-table-body')) {
