@@ -11,47 +11,65 @@
 <body>
   <!-- Header -->
   <header>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-      <a class="navbar-brand" href="#">
-        <img src="logoh.png" alt="Company Logo">
-      </a>
-      <div class="navbar-collapse">
-        <ul class="navbar-nav ms-auto">
-          <!-- Semua item navbar telah dihapus sesuai permintaan -->
-        </ul>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <img src="logoh.png" alt="Company Logo" class="navbar-logo">
+        </a>
       </div>
-    </div>
-  </nav>
-</header>
+    </nav>
+  </header>
 
   <!-- Main Content -->
   <main class="main-container">
-    <div class="container-fluid">
-      <h1 class="page-title">Monitoring Admin</h1>
-
-      <div class="d-flex justify-content-between mb-4 flex-wrap">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title m-0">Monitoring Admin</h1>
         <a href="input.html" class="btn btn-primary">
           <i class="bi bi-plus-circle"></i> Add New Data
         </a>
       </div>
 
-      <div class="table-responsive">
-        <table class="table table-striped table-hover">
-          <thead>
-            <tr id="headers">
-              <!-- Headers from script.js -->
-            </tr>
-          </thead>
-          <tbody id="data-table-body">
-            <!-- Data rows inserted here -->
-          </tbody>
-        </table>
+      <div class="table-container">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-primary">
+              <tr id="headers">
+                <!-- Headers will be inserted here -->
+              </tr>
+            </thead>
+            <tbody id="data-table-body">
+              <!-- Data will be inserted here -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </main>
 
+  <!-- Loading Indicator -->
+  <div id="loading-indicator" class="loading-overlay">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof loadData === 'function') {
+        loadData();
+      } else {
+        console.error('loadData function not found');
+        document.getElementById('data-table-body').innerHTML = `
+          <tr>
+            <td colspan="100" class="text-danger">
+              Error: JavaScript functions not loaded properly
+            </td>
+          </tr>`;
+      }
+    });
+  </script>
 </body>
 </html>
