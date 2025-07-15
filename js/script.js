@@ -69,21 +69,17 @@ function displayData(data) {
             tr.appendChild(td);
         });
         
-        // Add action buttons
+// Add action buttons
 const actionTd = document.createElement('td');
-actionTd.innerHTML = `
-    <div class="btn-group btn-group-sm">
-        <a href="edit.html?id=${index}" class="btn btn-warning" title="Edit">
-            <i class="bi bi-pencil-square"></i>
-        </a>
-        <button onclick="deleteRow(${index})" class="btn btn-danger" title="Delete">
-            <i class="bi bi-trash"></i>
-        </button>
-    </div>
-`;
+actionTd.innerHTML =   <div class="btn-group btn-group-sm">   <a href="edit.html?id=${index}" class="btn btn-warning">   <i class="bi bi-pencil-square"></i> Edit   </a>   <button onclick="deleteRow(${index})" class="btn btn-danger">   <i class="bi bi-trash"></i> Delete   </button>   </div>  ;
 tr.appendChild(actionTd);
 
-dataBody.appendChild(tr);
+dataBody.appendChild(tr);  
+});
+
+}
+
+
 
 // Generate form fields dynamically
 async function generateFormFields(formId, action) {
@@ -248,8 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(loader);
     }
     
-    // Set current year in footer
-    document.getElementById('year').textContent = new Date().getFullYear();
+    
     
     // Initialize based on current page
     if (document.getElementById('data-table-body')) {
