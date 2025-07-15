@@ -25,7 +25,7 @@ async function loadData() {
 function showLoading(show) {
     const loader = document.getElementById('loading-indicator');
     if (loader) {
-        loader.style.display = show ? 'block' : 'none';
+        loader.style.display = show ? 'flex' : 'none';
     }
 }
 
@@ -157,12 +157,10 @@ async function loadDataForEdit(id) {
 }
 
 // Submit form data
-// Submit form data
 async function submitForm(action, id = null) {
     try {
         showLoading(true);
 
-        // Cari form berdasarkan action ('add' => input-form, 'edit' => edit-form)
         const formId = (action === 'add') ? 'input-form' : (action === 'edit' ? 'edit-form' : `${action}-form`);
         const form = document.getElementById(formId);
 
@@ -173,7 +171,6 @@ async function submitForm(action, id = null) {
         const formData = new FormData(form);
         const data = {};
 
-        // Convert FormData to object
         for (const [key, value] of formData.entries()) {
             data[key] = value;
         }
@@ -209,7 +206,6 @@ async function submitForm(action, id = null) {
     }
 }
 
-
 // Delete a row
 async function deleteRow(id) {
     if (!confirm('Are you sure you want to delete this record?')) {
@@ -242,20 +238,10 @@ async function deleteRow(id) {
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-    // Add loading indicator if it doesn't exist
+    // Create loading indicator if it doesn't exist
     if (!document.getElementById('loading-indicator')) {
         const loader = document.createElement('div');
         loader.id = 'loading-indicator';
-        loader.style.display = 'none';
-        loader.style.position = 'fixed';
-        loader.style.top = '0';
-        loader.style.left = '0';
-        loader.style.width = '100%';
-        loader.style.height = '100%';
-        loader.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        loader.style.zIndex = '1000';
-        loader.style.justifyContent = 'center';
-        loader.style.alignItems = 'center';
         loader.innerHTML = `
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -263,6 +249,9 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(loader);
     }
+    
+    // Set current year in footer
+    document.getElementById('year').textContent = new Date().getFullYear();
     
     // Initialize based on current page
     if (document.getElementById('data-table-body')) {
