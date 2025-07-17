@@ -1,134 +1,68 @@
-:root {
-  --primary-color: #ffc107;
-  --secondary-color: #f8f9fa;
-  --accent-color: #343a40;
-  --dark-color: #2d3748;
+// Config
+const CONFIG = {
+  API_URL: "YOUR_WEB_APP_URL",
+  ITEMS_PER_PAGE: 10
+};
+
+// DOM Elements
+const elements = {
+  tableBody: document.getElementById('data-table-body'),
+  tableHeaders: document.getElementById('table-headers'),
+  searchInput: document.querySelector('.search-bar input')
+};
+
+// Main Functions
+export async function loadData(page = 1) {
+  try {
+    showLoading(true);
+    const response = await fetch(`${CONFIG.API_URL}?action=getData`);
+    const data = await response.json();
+    renderTable(data);
+    setupPagination(data.length);
+  } catch (error) {
+    showError(error);
+  } finally {
+    showLoading(false);
+  }
 }
 
-body {
-  padding: 0;
-  background-color: #f8f9fa;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.navbar-brand img {
-  height: 40px;
-  transition: transform 0.3s ease;
-}
-
-.navbar-brand:hover img {
-  transform: scale(1.05);
-}
-
-.main-container {
-  flex: 1;
-  padding: 10px;
-}
-
-.page-title {
-  color: var(--primary-color);
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  position: relative;
-  padding-bottom: 0.5rem;
-  text-align: center;
-}
-
-.page-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 3px;
-  background-color: var(--accent-color);
-}
-
-.btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-  background-color: #3367d6;
-  border-color: #3367d6;
-  transform: translateY(-2px);
-}
-
-.table-responsive {
-  margin-top: 20px;
-  background-color: white;
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-.table {
-  margin-bottom: 0;
-}
-
-.table thead {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.table-hover tbody tr:hover {
-  background-color: rgba(66, 133, 244, 0.1);
-}
-
-.btn-group-sm .btn {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-.nav-link {
-  color: rgba(255,255,255,0.8);
-  transition: all 0.3s ease;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-}
-
-.nav-link:hover, .nav-link.active {
-  color: white;
-}
-
-.form-container {
-  background-color: white;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  margin-top: 20px;
-}
-
-#loading-indicator {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .main-container {
-    padding: 15px;
+function renderTable(data) {
+  elements.tableBody.innerHTML = '';
+  
+  if (!data.length) {
+    elements.tableBody.innerHTML = `
+      <tr>
+        <td colspan="100" class="text-center py-4 text-muted">
+          No data available
+        </td>
+      </tr>`;
+    return;
   }
   
-  .page-title {
-    font-size: 1.5rem;
+  // ... (table rendering logic)
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  if (elements.tableBody) {
+    loadData();
   }
   
-  .btn {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
+  elements.searchInput?.addEventListener('input', handleSearch);
+});
+
+// Helper Functions
+function showLoading(show) {
+  // ... (loading indicator logic)
 }
+
+// Initialize
+window.dataManager = {
+  loadData,
+  deleteRow: async (id) => {
+    if (confirm('Delete this item?')) {
+      await fetch(`${CONFIG.API_URL}?action=delete&id=${id}`);
+      loadData();
+    }
+  }
+};
