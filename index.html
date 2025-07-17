@@ -1,72 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>Mobile Data Manager</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .table-container {
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .action-buttons button {
+            margin-right: 5px;
+        }
+    </style>
 </head>
-<body class="mobile-view">
-  <!-- App Header -->
-  <header class="app-header">
-    <nav class="navbar sticky-top">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-          <img src="assets/logo.png" alt="Logo" height="28">
-          <span class="app-title">Data Manager</span>
-        </a>
-        <button class="btn btn-sm btn-primary" onclick="location.href='input.html'">
-          <i class="bi bi-plus-lg"></i>
-        </button>
-      </div>
-    </nav>
-  </header>
-
-  <!-- Main Content -->
-  <main class="app-container">
-    <div class="container-fluid p-2">
-      <!-- Filter/Search Bar -->
-      <div class="search-bar mb-2">
-        <input type="search" class="form-control" placeholder="Search...">
-      </div>
-      
-      <!-- Data Table -->
-      <div class="data-table-container">
-        <div class="table-responsive">
-          <table class="table table-sm table-hover">
-            <thead id="table-headers"></thead>
-            <tbody id="data-table-body"></tbody>
-          </table>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Data Management</h1>
+        
+        <div class="form-container">
+            <h3 id="formTitle">Add New Record</h3>
+            <form id="dataForm">
+                <input type="hidden" id="recordId">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="user" class="form-label">User</label>
+                        <input type="text" class="form-control" id="user" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="produk" class="form-label">Produk</label>
+                        <input type="text" class="form-control" id="produk" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="kodeAkses" class="form-label">Kode Akses</label>
+                        <input type="text" class="form-control" id="kodeAkses" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="link" class="form-label">Link</label>
+                    <input type="url" class="form-control" id="link" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
+            </form>
         </div>
-      </div>
-      
-      <!-- Pagination -->
-      <div class="pagination-controls">
-        <button class="btn btn-sm btn-outline-secondary">Previous</button>
-        <span class="page-indicator">Page 1</span>
-        <button class="btn btn-sm btn-outline-secondary">Next</button>
-      </div>
+
+        <div class="table-container">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Produk</th>
+                        <th>Kode Akses</th>
+                        <th>Link</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
     </div>
-  </main>
 
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="index.html" class="nav-item active">
-      <i class="bi bi-house-door"></i>
-      <span>Home</span>
-    </a>
-    <a href="input.html" class="nav-item">
-      <i class="bi bi-plus-square"></i>
-      <span>Add</span>
-    </a>
-    <a href="#" class="nav-item">
-      <i class="bi bi-gear"></i>
-      <span>Settings</span>
-    </a>
-  </nav>
-
-  <script src="js/script.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzHl9gLsEjy0wKT_WRuxRvKCvBm10_CUUFgRcMi8cwEHoOAqxdshlU1ADxnjtJMwJdBqg/exec';
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadData);
+        
+        // Form submission
+        document.getElementById('dataForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitForm();
+        });
+        
+        // Cancel button
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            resetForm();
+        });
+        
+        // Load data from Google Sheets
+        function loadData() {
+            fetch(`${scriptUrl}?action=read`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('dataTable');
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.No}</td>
+                            <td>${row.User}</td>
+                            <td>${row.Email}</td>
+                            <td>${row.Produk}</td>
+                            <td>${row['Kode Akses']}</td>
+                            <td><a href="${row.Link}" target="_blank">View Link</a></td>
+                            <td class="action-buttons">
+                                <button class="btn btn-sm btn-warning" onclick="editRecord('${row.No}')">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteRecord('${row.No}')">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Submit form data
+        function submitForm() {
+            const recordId = document.getElementById('recordId').value;
+            const action = recordId ? 'update' : 'create';
+            const formData = {
+                User: document.getElementById('user').value,
+                Email: document.getElementById('email').value,
+                Produk: document.getElementById('produk').value,
+                'Kode Akses': document.getElementById('kodeAkses').value,
+                Link: document.getElementById('link').value
+            };
+            
+            if (action === 'update') {
+                formData.No = recordId;
+            }
+            
+            fetch(`${scriptUrl}?action=${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                resetForm();
+                loadData();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        // Edit record
+        function editRecord(recordId) {
+            fetch(`${scriptUrl}?action=read&id=${recordId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const record = data[0];
+                        document.getElementById('formTitle').textContent = 'Edit Record';
+                        document.getElementById('recordId').value = record.No;
+                        document.getElementById('user').value = record.User;
+                        document.getElementById('email').value = record.Email;
+                        document.getElementById('produk').value = record.Produk;
+                        document.getElementById('kodeAkses').value = record['Kode Akses'];
+                        document.getElementById('link').value = record.Link;
+                        document.getElementById('cancelBtn').style.display = 'inline-block';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Delete record
+        function deleteRecord(recordId) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                fetch(`${scriptUrl}?action=delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ No: recordId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    loadData();
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+        
+        // Reset form
+        function resetForm() {
+            document.getElementById('formTitle').textContent = 'Add New Record';
+            document.getElementById('dataForm').reset();
+            document.getElementById('recordId').value = '';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
