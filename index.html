@@ -6,27 +6,11 @@
     <title>Data Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            padding: 20px;
-            background-color: #f8f9fa;
-        }
-        .table-container {
-            margin-top: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        .form-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .action-buttons button {
-            margin-right: 5px;
-        }
+        body { padding: 20px; background-color: #f8f9fa; }
+        .table-container { margin-top: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 20px; }
+        .form-container { background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+        .action-buttons button { margin-right: 5px; }
+        a { word-break: break-all; }
     </style>
 </head>
 <body>
@@ -67,27 +51,37 @@
         </div>
 
         <div class="table-container">
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>User</th>
-                        <th>Email</th>
-                        <th>Produk</th>
-                        <th>Kode Akses</th>
-                        <th>Link</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTable">
-                    <!-- Data will be loaded here -->
-                </tbody>
-            </table>
+            <div class="d-flex justify-content-between mb-3">
+                <h3>Data Records</h3>
+                <button class="btn btn-sm btn-success" onclick="loadData()">Refresh Data</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>No</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Produk</th>
+                            <th>Kode Akses</th>
+                            <th>Link</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable">
+                        <!-- Data will be loaded here -->
+                        <tr>
+                            <td colspan="7" class="text-center">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Ganti dengan URL Web App Anda
         const scriptUrl = 'https://script.google.com/macros/s/AKfycbzHl9gLsEjy0wKT_WRuxRvKCvBm10_CUUFgRcMi8cwEHoOAqxdshlU1ADxnjtJMwJdBqg/exec';
         
         // Load data when page loads
@@ -100,27 +94,35 @@
         });
         
         // Cancel button
-        document.getElementById('cancelBtn').addEventListener('click', function() {
-            resetForm();
-        });
+        document.getElementById('cancelBtn').addEventListener('click', resetForm);
         
         // Load data from Google Sheets
         function loadData() {
+            document.getElementById('dataTable').innerHTML = '<tr><td colspan="7" class="text-center">Loading data...</td></tr>';
+            
             fetch(`${scriptUrl}?action=read`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
                 .then(data => {
                     const tableBody = document.getElementById('dataTable');
                     tableBody.innerHTML = '';
                     
+                    if (data.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No data available</td></tr>';
+                        return;
+                    }
+                    
                     data.forEach(row => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td>${row.No}</td>
-                            <td>${row.User}</td>
-                            <td>${row.Email}</td>
-                            <td>${row.Produk}</td>
-                            <td>${row['Kode Akses']}</td>
-                            <td><a href="${row.Link}" target="_blank">View Link</a></td>
+                            <td>${row.No || ''}</td>
+                            <td>${row.User || ''}</td>
+                            <td>${row.Email || ''}</td>
+                            <td>${row.Produk || ''}</td>
+                            <td>${row['Kode Akses'] || ''}</td>
+                            <td><a href="${row.Link || '#'}" target="_blank">${row.Link || ''}</a></td>
                             <td class="action-buttons">
                                 <button class="btn btn-sm btn-warning" onclick="editRecord('${row.No}')">Edit</button>
                                 <button class="btn btn-sm btn-danger" onclick="deleteRecord('${row.No}')">Delete</button>
@@ -129,11 +131,26 @@
                         tableBody.appendChild(tr);
                     });
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('dataTable').innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-danger">
+                                Error loading data: ${error.message}
+                                <button class="btn btn-sm btn-primary ms-2" onclick="loadData()">Try Again</button>
+                            </td>
+                        </tr>
+                    `;
+                });
         }
         
         // Submit form data
         function submitForm() {
+            const submitBtn = document.querySelector('#dataForm button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            submitBtn.disabled = true;
+            
             const recordId = document.getElementById('recordId').value;
             const action = recordId ? 'update' : 'create';
             const formData = {
@@ -150,57 +167,84 @@
             
             fetch(`${scriptUrl}?action=${action}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
             .then(data => {
-                alert(data.message);
+                alert(data.message || 'Operation successful');
                 resetForm();
                 loadData();
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Error: ${error.message}`);
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            });
         }
         
         // Edit record
         function editRecord(recordId) {
+            document.getElementById('dataTable').innerHTML = '<tr><td colspan="7" class="text-center">Loading record data...</td></tr>';
+            
             fetch(`${scriptUrl}?action=read&id=${recordId}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
                 .then(data => {
                     if (data.length > 0) {
                         const record = data[0];
                         document.getElementById('formTitle').textContent = 'Edit Record';
                         document.getElementById('recordId').value = record.No;
-                        document.getElementById('user').value = record.User;
-                        document.getElementById('email').value = record.Email;
-                        document.getElementById('produk').value = record.Produk;
-                        document.getElementById('kodeAkses').value = record['Kode Akses'];
-                        document.getElementById('link').value = record.Link;
+                        document.getElementById('user').value = record.User || '';
+                        document.getElementById('email').value = record.Email || '';
+                        document.getElementById('produk').value = record.Produk || '';
+                        document.getElementById('kodeAkses').value = record['Kode Akses'] || '';
+                        document.getElementById('link').value = record.Link || '';
                         document.getElementById('cancelBtn').style.display = 'inline-block';
+                        
+                        // Scroll to form
+                        document.querySelector('.form-container').scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        alert('Record not found');
                     }
+                    loadData();
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`Error loading record: ${error.message}`);
+                    loadData();
+                });
         }
         
         // Delete record
         function deleteRecord(recordId) {
-            if (confirm('Are you sure you want to delete this record?')) {
-                fetch(`${scriptUrl}?action=delete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ No: recordId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    loadData();
-                })
-                .catch(error => console.error('Error:', error));
-            }
+            if (!confirm('Are you sure you want to delete this record?')) return;
+            
+            fetch(`${scriptUrl}?action=delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ No: recordId })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message || 'Record deleted successfully');
+                loadData();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Error deleting record: ${error.message}`);
+            });
         }
         
         // Reset form
