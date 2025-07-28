@@ -4,8 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
     API_URL: 'https://script.google.com/macros/s/AKfycbzuOLBtkiMm-Kp3DojnhcSGzg8SsqMlyEltYpvLJLxYX0Kbn07aN2ggL6vrteSD4KZNQw/exec',
     REQUEST_TIMEOUT: 20000,
     DEBOUNCE_DELAY: 500,
-    MAX_RETRIES: 2,
-    RETRY_DELAY: 1000
+    MAX_RETRIES: 3,
+    RETRY_DELAY: 1000,
+    OFFLINE_MESSAGE: 'You are currently offline. Please check your internet connection.',
+    SERVER_ERROR_MESSAGE: 'Server is not responding. Please try again later.'
   };
 
   // DOM Elements
@@ -29,7 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
     emailError: document.getElementById('emailError'),
     produkError: document.getElementById('produkError'),
     confirmDeleteBtn: document.getElementById('confirmDelete'),
-    cancelDeleteBtn: document.getElementById('cancelDelete')
+    cancelDeleteBtn: document.getElementById('cancelDelete'),
+    offlineBanner: document.createElement('div')
   };
 
   // State management
@@ -38,13 +41,16 @@ document.addEventListener('DOMContentLoaded', function() {
     currentUserId: null,
     isEditMode: false,
     abortController: null,
-    retryCount: 0
+    retryCount: 0,
+    isOnline: navigator.onLine
   };
 
   // Initialize the app
   async function init() {
     setupLoadingIndicator();
+    setupOfflineBanner();
     setupEventListeners();
+    checkNetworkStatus();
     await fetchUsersWithRetry();
   }
 
@@ -54,6 +60,33 @@ document.addEventListener('DOMContentLoaded', function() {
     elements.loading.className = 'loading-overlay';
     elements.loading.innerHTML = '<div class="loading-spinner"></div>';
     document.body.appendChild(elements.loading);
+  }
+
+  // Set up offline banner
+  function setupOfflineBanner() {
+    elements.offlineBanner.id = 'offlineBanner';
+    elements.offlineBanner.className = 'offline-banner';
+    elements.offlineBanner.innerHTML = `
+      <i class="fas fa-wifi"></i>
+      <span>${CONFIG.OFFLINE_MESSAGE}</span>
+    `;
+    elements.offlineBanner.style.display = 'none';
+    document.body.appendChild(elements.offlineBanner);
+  }
+
+  // Check network status
+  function checkNetworkStatus() {
+    window.addEventListener('online', () => {
+      state.isOnline = true;
+      elements.offlineBanner.style.display = 'none';
+      fetchUsersWithRetry();
+    });
+
+    window.addEventListener('offline', () => {
+      state.isOnline = false;
+      elements.offlineBanner.style.display = 'flex';
+      showToast(CONFIG.OFFLINE_MESSAGE, 'warning');
+    });
   }
 
   // Set up event listeners
@@ -88,6 +121,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Fetch users with retry mechanism
   async function fetchUsersWithRetry() {
+    if (!state.isOnline) {
+      showToast(CONFIG.OFFLINE_MESSAGE, 'warning');
+      return;
+    }
+
     try {
       await fetchUsers();
       state.retryCount = 0; // Reset retry count on success
@@ -98,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
         await fetchUsersWithRetry();
       } else {
-        showToast('Failed to load users after several attempts', 'error');
+        showToast(CONFIG.SERVER_ERROR_MESSAGE, 'error');
         state.users = [];
         renderUserTable(state.users);
       }
@@ -151,9 +189,13 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error(data.message || 'Failed to fetch users');
       }
     } catch (error) {
-      if (error.name !== 'AbortError') {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out');
+      } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        throw new Error(CONFIG.OFFLINE_MESSAGE);
+      } else {
         console.error('Error fetching users:', error);
-        throw error; // Re-throw for retry mechanism
+        throw error;
       }
     } finally {
       hideTableLoading();
@@ -352,6 +394,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // API operations
   async function addUser(userData) {
+    if (!state.isOnline) {
+      throw new Error(CONFIG.OFFLINE_MESSAGE);
+    }
+
     const payload = {
       action: 'addUser',
       user: userData
@@ -372,6 +418,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function updateUser(id, userData) {
+    if (!state.isOnline) {
+      throw new Error(CONFIG.OFFLINE_MESSAGE);
+    }
+
     const payload = {
       action: 'updateUser',
       id: id,
@@ -393,6 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function deleteUser(id) {
+    if (!state.isOnline) {
+      throw new Error(CONFIG.OFFLINE_MESSAGE);
+    }
+
     const payload = {
       action: 'deleteUser',
       id: id
@@ -433,6 +487,11 @@ document.addEventListener('DOMContentLoaded', function() {
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out');
+      } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        throw new Error(CONFIG.OFFLINE_MESSAGE);
+      }
       throw error;
     }
   }
